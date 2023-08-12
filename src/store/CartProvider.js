@@ -1,39 +1,59 @@
-import { useState } from "react";
+import { useReducer } from "react";
 import CartContext from "./cart-context";
 
+const defaultCartState={
+  items:[],
+  totalAmount:0
+};
+
+const cartReducer = (state,action)=>{
+if(action.type === 'ADD'){
+  const updatedItems= state.items.concat(action.item);
+  const updatedTotalAmount=state.totalAmount+action.item.price*action.item.amount;
+  return {
+    items:updatedItems,
+    totalAmount:updatedTotalAmount
+  }
+}
+
+return  defaultCartState;
+};
+
+
+//const items=[];
 const CartProvider = (props) => {
-  const [cartItems, setCartItems] = useState([]);
-  const addItemToTheCart = (item) => {
-    const existingCartItemIndex = cartItems.findIndex((i) => {
-      return i.id === item.id;
-    });
-    const existingCartItem = cartItems[existingCartItemIndex];
-    let updatedItem;
-    let updatedItems;
-    if (existingCartItem) {
-      updatedItem = {
-        ...existingCartItem,
-        amount: JSON.stringify(
-          Number(existingCartItem.amount) + Number(item.amount)
-        ),
-      };
-      updatedItems = [...cartItems];
-      updatedItems[existingCartItemIndex] = updatedItem;
-      setCartItems(updatedItems);
-    } else {
-      setCartItems([...cartItems, item]);
-    }
+
+const [cartState , dispatchCartAction] =useReducer(cartReducer, defaultCartState);
+  
+
+  //to update the cart by state it render the function
+  //const [items,updateItems]=useState([]);
+
+  const addItemToCartHandler=(item)=>{
+
+  dispatchCartAction({type:'ADD',item: item});
+    // updateItems([...items,item]);
+   
+    // //items.push(item)
+    // console.log(cartContext);
+
+
+
+
   };
 
-  const removeItemFromTheCart = (id) => {};
-  const cartContext = {
-    items: cartItems,
-    totalAmount: 0,
-    addItem: addItemToTheCart,
-    removeItem: removeItemFromTheCart,
+  const removeItemFromCartHandler=(id)=>{
+    dispatchCartAction({type:'REMOVE',id:id});
   };
 
-  console.log(cartContext.items);
+
+  const cartContext={
+    items:cartState.items, //items before change
+    totalAmount:cartState.totalAmount,
+    addItem:addItemToCartHandler,
+    removeItem:removeItemFromCartHandler,
+    
+  }
 
   return (
     <CartContext.Provider value={cartContext}>
